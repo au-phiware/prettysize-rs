@@ -1,0 +1,29 @@
+
+[package]
+name = "size-fuzz"
+version = "0.0.1"
+authors = ["Automatically generated"]
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+serde_derive = "1.0"
+bincode = "1.1"
+[dependencies.size]
+path = ".."
+[dependencies.libfuzzer-sys]
+git = "https://github.com/rust-fuzz/libfuzzer-sys.git"
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "from_string"
+path = "fuzz_targets/from_string.rs"
+
+[[bin]]
+name = "from_format"
+path = "fuzz_targets/from_format.rs"

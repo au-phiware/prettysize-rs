@@ -65,6 +65,19 @@ fn primitive_division() {
     assert_eq!(size.bytes(), 923076923);
 }
 
+macro_rules! size_bytes {
+    ($name:ident, $num:expr, $unit:ident, $T:ty, $res:tt) => {
+        #[test]
+        fn $name() {
+            assert_eq!(Size::$unit::<$T>($num).bytes(), $res);
+        }
+    }
+}
+
+size_bytes!(size_bytes_b_i64_1, 792633534438178879, Bytes, i64, 792633534438178879);
+size_bytes!(size_bytes_mb_u64_1, 16172825064112138, Kilobytes, u64, 16172825064112138000);
+size_bytes!(size_bytes_tib_f64_1, -1.333602886575971, Tebibytes, f64, 18446742607397670991);
+
 #[test]
 fn size_from_str() {
     let size = Size::<f64>::from_str("200");
@@ -84,4 +97,7 @@ fn size_from_str() {
 
     let size = Size::<f64>::from_str("~");
     assert_eq!(format!("{:?}", size.err().unwrap()), "TokenError(Unmatch)");
+
+    let size = Size::<f64>::from_str("4.06 EiB").unwrap();
+    assert_eq!(size, Size::Bytes::<i64>(4680861308703798272));
 }

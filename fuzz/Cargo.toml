@@ -10,6 +10,7 @@ cargo-fuzz = true
 
 [dependencies]
 serde_derive = "1.0"
+serde = "1.0"
 bincode = "1.1"
 [dependencies.size]
 path = ".."
@@ -25,5 +26,13 @@ name = "from_string"
 path = "fuzz_targets/from_string.rs"
 
 [[bin]]
-name = "from_format"
-path = "fuzz_targets/from_format.rs"
+name = "from_u64"
+path = "fuzz_targets/from_u64.rs"
+
+[[bin]]
+name = "from_i64"
+path = "fuzz_targets/from_i64.rs"
+
+[[bin]]
+name = "from_f64"
+path = "fuzz_targets/from_f64.rs"

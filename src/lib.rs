@@ -7,6 +7,7 @@ use self::Unit::*;
 use num_traits::FromPrimitive;
 use num_traits::ToPrimitive;
 use std::fmt;
+use std::f64;
 use std::str::FromStr;
 
 const DEFAULT_BASE: Base = Base::Base2;
@@ -48,11 +49,13 @@ pub const PiB: u64 = PEBIBYTE;
 #[allow(non_upper_case_globals)]
 pub const EiB: u64 = EXBIBYTE;
 
+#[derive(Debug)]
 pub enum Base {
     Base2,
     Base10,
 }
 
+#[derive(Debug)]
 pub enum Unit {
     Byte,
     Kibibyte,
@@ -132,6 +135,7 @@ pub enum Size<T> {
     Exabytes(T),
 }
 
+#[derive(Debug)]
 pub enum Style {
     Abbreviated,
     AbbreviatedLowerCase,
@@ -188,23 +192,35 @@ where
     pub fn bytes(&self) -> u64 {
         use self::Size::*;
 
-        match &self {
-            &Bytes(x) => x.to_f64().unwrap(),
-            &Kilobytes(x) => x.to_f64().unwrap() * KILOBYTE as f64,
-            &Megabytes(x) => x.to_f64().unwrap() * MEGABYTE as f64,
-            &Gigabytes(x) => x.to_f64().unwrap() * GIGABYTE as f64,
-            &Terabytes(x) => x.to_f64().unwrap() * TERABYTE as f64,
-            &Petabytes(x) => x.to_f64().unwrap() * PETABYTE as f64,
-            &Exabytes(x) => x.to_f64().unwrap() * EXABYTE as f64,
-            &Kibibytes(x) => x.to_f64().unwrap() * KIBIBYTE as f64,
-            &Mebibytes(x) => x.to_f64().unwrap() * MEBIBYTE as f64,
-            &Gibibytes(x) => x.to_f64().unwrap() * GIBIBYTE as f64,
-            &Tebibytes(x) => x.to_f64().unwrap() * TEBIBYTE as f64,
-            &Pebibytes(x) => x.to_f64().unwrap() * PEBIBYTE as f64,
-            &Exbibytes(x) => x.to_f64().unwrap() * EXBIBYTE as f64,
+        let (i, f, unit) = match &self {
+            &Bytes(x)     => (x.to_u64(), x.to_f64(), 1),
+            &Kilobytes(x) => (x.to_u64(), x.to_f64(), KILOBYTE),
+            &Megabytes(x) => (x.to_u64(), x.to_f64(), MEGABYTE),
+            &Gigabytes(x) => (x.to_u64(), x.to_f64(), GIGABYTE),
+            &Terabytes(x) => (x.to_u64(), x.to_f64(), TERABYTE),
+            &Petabytes(x) => (x.to_u64(), x.to_f64(), PETABYTE),
+            &Exabytes(x)  => (x.to_u64(), x.to_f64(), EXABYTE ),
+            &Kibibytes(x) => (x.to_u64(), x.to_f64(), KIBIBYTE),
+            &Mebibytes(x) => (x.to_u64(), x.to_f64(), MEBIBYTE),
+            &Gibibytes(x) => (x.to_u64(), x.to_f64(), GIBIBYTE),
+            &Tebibytes(x) => (x.to_u64(), x.to_f64(), TEBIBYTE),
+            &Pebibytes(x) => (x.to_u64(), x.to_f64(), PEBIBYTE),
+            &Exbibytes(x) => (x.to_u64(), x.to_f64(), EXBIBYTE),
+        };
+        let (i, f) = match (i, f) {
+            (_, Some(f)) if f.fract() > f64::EPSILON => (None, Some(f)),
+            t @ (None, Some(_)) => t,
+            (i, _) => (i, None),
+        };
+        match (i, f) {
+            (_, Some(f)) =>
+                // This will cause Undefined Behavior if the f64 cannot be represented by a u64
+                (f * unit as f64) as u64,
+            (Some(i), _) =>
+                // This will panic with overflow
+                i * unit,
+            _ => 0,
         }
-        .to_u64()
-        .unwrap()
     }
 
     pub fn to_string(&self, base: Base, style: Style) -> String {
